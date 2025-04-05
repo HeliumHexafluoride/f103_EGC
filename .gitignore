@@ -1,0 +1,3 @@
+*.o
+MDK-ARM/f103_EGC
+DebugConfig

@@ -1,0 +1,19 @@
+{
+    "files.associations": {
+        "gpio.h": "c",
+        "main.h": "c",
+        "adc.h": "c",
+        "dma.h": "c",
+        "sd.h": "c",
+        "usart.h": "c",
+        "rtc.h": "c",
+        "2.4TFT7P.C": "cpp",
+        "ADS1292.C": "cpp",
+        "ECG_ANA.C": "cpp",
+        "stdint.h": "c",
+        "atomic": "c",
+        "bit": "c",
+        "cstdint": "c",
+        "spi.h": "c"
+    }
+}
