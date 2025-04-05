@@ -65,6 +65,7 @@ void delay_us(uint32_t us);
 /* Private defines -----------------------------------------------------------*/
 #define ADS1292_DRDY_Pin GPIO_PIN_6
 #define ADS1292_DRDY_GPIO_Port GPIOB
+#define ADS1292_DRDY_EXTI_IRQn EXTI9_5_IRQn
 
 /* USER CODE BEGIN Private defines */
 

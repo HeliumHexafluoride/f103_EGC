@@ -58,27 +58,25 @@ void ADS1292_Init(void)
 //		GPIO_Init(GPIOA, &GPIO_InitStructure);		
 
 
+	// 	//DRDY中断初始化
+	//   EXTI_ClearITPendingBit(EXTI_Line8);//清除中断标志
+  	// GPIO_EXTILineConfig(GPIO_PortSourceGPIOA,GPIO_PinSource8);//选择管脚
+  	// EXTI_InitStructure.EXTI_Line=EXTI_Line8;						 //选择中断线路
+  	// EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;	 //设置为中断请求，非事件请求
+  	// EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //下降沿触发
+  	// EXTI_InitStructure.EXTI_LineCmd = ENABLE;						 //外部中断使能
+  	// EXTI_Init(&EXTI_InitStructure);	 
+		
+	// 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+  	// NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;					//选择中断通道
+  	// NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	//抢占优先级 
+  	// NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;				//子优先级
+  	// NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;						//使能外部中断通道
+  	// NVIC_Init(&NVIC_InitStructure); 
+	// 	EXTI->IMR &= ~(EXTI_Line8);//屏蔽外部中断	
 
 
 
-		//DRDY中断初始化
-	  EXTI_ClearITPendingBit(EXTI_Line8);//清除中断标志
-  	GPIO_EXTILineConfig(GPIO_PortSourceGPIOA,GPIO_PinSource8);//选择管脚
-  	EXTI_InitStructure.EXTI_Line=EXTI_Line8;						 //选择中断线路
-  	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;	 //设置为中断请求，非事件请求
-  	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling; //下降沿触发
-  	EXTI_InitStructure.EXTI_LineCmd = ENABLE;						 //外部中断使能
-  	EXTI_Init(&EXTI_InitStructure);	 
-		
-		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-  	NVIC_InitStructure.NVIC_IRQChannel = EXTI9_5_IRQn;					//选择中断通道
-  	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;	//抢占优先级 
-  	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;				//子优先级
-  	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;						//使能外部中断通道
-  	NVIC_Init(&NVIC_InitStructure); 
-		
-		
-		EXTI->IMR &= ~(EXTI_Line8);//屏蔽外部中断	
 		ADS_CS_HIGH;		
 		ADS1292_PowerOnInit();//上电复位，进入待机模式	
 }
@@ -87,12 +85,12 @@ volatile u8 ads1292_recive_flag=0;	//数据读取完成标志
 volatile u8 ads1292_Cache[9];	//数据缓冲区
 
 
-void EXTI9_5_IRQHandler(void)
+void EXTI15_10_IRQHandler(void)
 {
 	
-		if(EXTI->IMR&EXTI_Line8 && ADS_DRDY==0)//数据接收中断				
+		if(__HAL_GPIO_EXTI_GET_IT(ADS1292_DRDY_Pin) != RESET && ADS_DRDY_STATE==0)//数据接收中断				
 		{		
-				EXTI_ClearITPendingBit(EXTI_Line8); 	
+				__HAL_GPIO_EXTI_CLEAR_IT(ADS1292_DRDY_Pin); 	
 				ADS1292_Read_Data((u8*)ads1292_Cache);//数据存到9字节缓冲区
 				ads1292_recive_flag=1;
 		}	

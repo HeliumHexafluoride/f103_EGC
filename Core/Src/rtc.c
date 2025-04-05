@@ -146,7 +146,7 @@ void RTC_TimeAndDate_Show(void)
     HAL_RTC_GetTime(&hrtc, &RTC_TimeStructure, RTC_FORMAT_BIN);
     HAL_RTC_GetDate(&hrtc, &RTC_DateStructure, RTC_FORMAT_BIN);
 
-    // 每秒打印一次
+    // 每秒打印�?�?
     if (Rtctmp != RTC_TimeStructure.Seconds)
     {
 

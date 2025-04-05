@@ -65,7 +65,7 @@ void delay_us(uint32_t us);
 
 char SD_FileName[] = "hello.txt";
 uint8_t WriteBuffer[] = "01 write buff to sd \r\n";
-uint8_t write_cnt =0;	//写SD卡次�?
+uint8_t write_cnt =0;	//写SD卡次�??
 
 /* USER CODE END 0 */
 
@@ -108,7 +108,7 @@ int main(void)
   MX_DAC_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  Get_SDCard_Capacity();	//得到使用内存并�?�择格式�?
+  Get_SDCard_Capacity();	//得到使用内存并挂�?
 
   /* USER CODE END 2 */
 
