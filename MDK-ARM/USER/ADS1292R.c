@@ -3,7 +3,7 @@
 #include "usart.h"
 #include "key.h"
 #include "stm32f1xx_hal.h"
-
+// #include "main.h" 
 /***ADS1292底层驱动***/
 //淘宝买的，没改过
 
@@ -85,11 +85,11 @@ volatile u8 ads1292_recive_flag=0;	//数据读取完成标志
 volatile u8 ads1292_Cache[9];	//数据缓冲区
 
 
-void EXTI15_10_IRQHandler(void)
+void ADS1292_DRDY_IRQHandler(void)
 {
-	
+
 		if(__HAL_GPIO_EXTI_GET_IT(ADS1292_DRDY_Pin) != RESET && ADS_DRDY_STATE==0)//数据接收中断				
-		{		
+		{
 				__HAL_GPIO_EXTI_CLEAR_IT(ADS1292_DRDY_Pin); 	
 				ADS1292_Read_Data((u8*)ads1292_Cache);//数据存到9字节缓冲区
 				ads1292_recive_flag=1;
@@ -303,7 +303,7 @@ void ADS1292_PowerOnInit(void)
 		ADS1292_Send_CMD(SDATAC);//发送停止连续读取数据命令
 		delay_ms(100);	
 		ADS1292_Send_CMD(RESET);//复位
-		delay_s(1);		
+		delay_ms(1000);		
 		ADS1292_Send_CMD(SDATAC);//发送停止连续读取数据命令
 		delay_ms(100);		
 	

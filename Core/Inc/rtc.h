@@ -35,13 +35,21 @@ extern "C" {
 extern RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN Private defines */
+void My_RTC_Init(void);
+void RTC_RESET(void);
 
+extern void Date_write_BKP(RTC_HandleTypeDef *  hrtc,RTC_DateTypeDef * Date);
+extern void Date_read_BKP(RTC_HandleTypeDef *  hrtc,RTC_DateTypeDef * Date);
+void HAL_RTCEx_RTCEventCallback  ( RTC_HandleTypeDef *  hrtc );
+
+
+void RTC_TimeAndDate_Show(void);
 /* USER CODE END Private defines */
 
 void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+extern uint8_t rccinit_flag;
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

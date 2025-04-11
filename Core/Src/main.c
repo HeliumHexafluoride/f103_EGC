@@ -20,17 +20,16 @@
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
-#include "dma.h"
 #include "fatfs.h"
-#include "rtc.h"
 #include "spi.h"
 #include "usart.h"
-#include "usb.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "sd.h"
+// #include "sd.h"
+#include "KEY.h"
+#include "rtc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -40,7 +39,12 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define RGB_GROP GPIOA
+#define RGB_B GPIO_PIN_1
+#define RGB_G GPIO_PIN_2
+#define RGB_R GPIO_PIN_3
+#define RGB_NO GPIO_PIN_RESET
+#define RGB_OFF GPIO_PIN_SET
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -65,8 +69,9 @@ void delay_us(uint32_t us);
 
 char SD_FileName[] = "hello.txt";
 uint8_t WriteBuffer[] = "01 write buff to sd \r\n";
-uint8_t write_cnt =0;	//写SD卡次�??
-
+uint8_t write_cnt =0;	//写SD卡�?��???
+RTC_TimeTypeDef Time = {0};
+RTC_DateTypeDef Date = {0};
 /* USER CODE END 0 */
 
 /**
@@ -97,18 +102,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_SPI1_Init();
-  MX_SPI2_Init();
-  MX_SPI3_Init();
   MX_USART1_UART_Init();
-  MX_USB_PCD_Init();
   MX_ADC1_Init();
-  MX_RTC_Init();
   MX_DAC_Init();
+  MX_SPI3_Init();
   MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
-  Get_SDCard_Capacity();	//得到使用内存并挂�?
+
+  My_RTC_Init();
+
+
+  // Get_SDCard_Capacity();
+
+  HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
+  HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_OFF);
+  HAL_GPIO_WritePin(RGB_GROP,RGB_B,RGB_OFF);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -116,6 +128,27 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    delay_ms(100);
+    RTC_TimeAndDate_Show();
+    if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
+    {
+      delay_ms(100);
+      if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON){
+        printf("reset RTC \r\n");
+        RTC_RESET();
+        delay_ms(500);
+      }
+    }
+    if (rccinit_flag)
+    {
+      HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
+    }
+    else{
+            HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
+
+    }
+    
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -162,11 +195,9 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC
-                              |RCC_PERIPHCLK_USB;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC|RCC_PERIPHCLK_ADC;
   PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSE;
   PeriphClkInit.AdcClockSelection = RCC_ADCPCLK2_DIV6;
-  PeriphClkInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
   if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();

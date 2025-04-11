@@ -14,6 +14,8 @@
         "atomic": "c",
         "bit": "c",
         "cstdint": "c",
-        "spi.h": "c"
+        "spi.h": "c",
+        "ads1292r.h": "c",
+        "HAL.C": "cpp"
     }
 }
