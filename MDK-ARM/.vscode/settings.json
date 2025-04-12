@@ -16,6 +16,10 @@
         "cstdint": "c",
         "spi.h": "c",
         "ads1292r.h": "c",
-        "HAL.C": "cpp"
+        "HAL.C": "cpp",
+        "type_traits": "c",
+        "xtr1common": "c",
+        "cstddef": "c",
+        "limits": "c"
     }
 }

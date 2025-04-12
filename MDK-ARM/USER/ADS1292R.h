@@ -11,7 +11,11 @@
 #define ADS_CS_LOW   HAL_GPIO_WritePin(GPIOB,GPIO_PIN_7,GPIO_PIN_RESET)
 #define ADS_DRDY_STATE HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6)
 
+#define ADS_RESET_HIGH   HAL_GPIO_WritePin(GPIOB,GPIO_PIN_9,GPIO_PIN_SET)
+#define ADS_RESET_LOW   HAL_GPIO_WritePin(GPIOB,GPIO_PIN_9,GPIO_PIN_RESET)
 
+
+#define ADS1292_DRDY_IRQ EXTI9_5_IRQn
 // #define ADS_DRDY_HIGH   HAL_GPIO_WritePin(GPIOB,GPIO_PIN_6,GPIO_PIN_SET)
 // #define ADS_DRDY_LOW   HAL_GPIO_WritePin(GPIOB,GPIO_PIN_6,GPIO_PIN_RESET)
 		
@@ -31,7 +35,7 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 		//ID
 		#define	ADS1292_DEVICE	DEVICE_ID_ADS1292R		//注意1292芯片不能使用呼吸相关的功能，会导致数据不正常
 		//1		CONFIG1	
-		#define DATA_RATE  				DATA_RATE_500SPS		//由于时钟原因，采样率会有误差
+		#define DATA_RATE  				DATA_RATE_250SPS		//由于时钟原因，采样率会有误差
 		//2		CONFIG2		
 		#define	PDB_LOFF_COMP 		PDB_LOFF_COMP_ON		//导联脱落比较器
 		#define	PDB_REFBUF				PDB_REFBUF_ON				//基准电压缓冲器
@@ -40,14 +44,14 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 		#define	INT_TEST					INT_TEST_OFF				//是否打开内部测试信号
 		//4	5		CHSET	
 		#define	CNNNLE1_POWER			PD_ON								//通道电源
-		#define	CNNNLE1_GAIN			GAIN_2							//增益
+		#define	CNNNLE1_GAIN			GAIN_6							//增益
 		#define	CNNNLE1_MUX				MUX_Normal_input		//输入方式
 		#define	CNNNLE2_POWER			PD_ON								
 		#define	CNNNLE2_GAIN			GAIN_6							
 		#define	CNNNLE2_MUX				MUX_Normal_input		
 		//6		RLD_SENS	
 		#define	PDB_RLD						PDB_RLD_ON					//RLD缓冲电源		
-		#define	RLD_LOFF_SENSE		RLD_LOFF_SENSE_OFF	//RLD导联脱落功能（测试的时候发现右腿导联脱落检测和右腿驱动输出好像不能同时工作）
+		#define	RLD_LOFF_SENSE		RLD_LOFF_SENSE_ON	//RLD导联脱落功能（测试的时候发现右腿导联脱落检测和右腿驱动输出好像不能同时工作）
 		#define	RLD2N							RLD_CANNLE_ON				//通道的右腿驱动输出
 		#define	RLD2P							RLD_CANNLE_ON
 		#define	RLD1N							RLD_CANNLE_OFF			//呼吸通道不需要右腿驱动
@@ -55,10 +59,10 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 		//7		LOFF_SENS	
 		#define	FLIP2							FLIP2_OFF						//这个位用于控制导联脱落检测通道1的电流的方向
 		#define	FLIP1							FLIP1_OFF						//这个位用于控制导联脱落检测通道2的电流的方向
-		#define	LOFF2N						RLD_CANNLE_ON			//通道导联脱落检测功能
-		#define	LOFF2P						RLD_CANNLE_ON
-		#define	LOFF1N						RLD_CANNLE_OFF			//呼吸通道不需要导联脱落检测
-		#define	LOFF1P						RLD_CANNLE_OFF
+		#define	LOFF2N						LOFF_CANNLE_ON			//通道导联脱落检测功能
+		#define	LOFF2P						LOFF_CANNLE_ON
+		#define	LOFF1N						LOFF_CANNLE_ON		//呼吸通道不需要导联脱落检测
+		#define	LOFF1P						LOFF_CANNLE_ON
 		//9		RSP1	
 		#define	RESP_DEMOD_EN1		RESP_DEMOD_ON		//启用通道1解调电路
 		#define	RESP_MOD_EN				RESP_MOD_ON			//启用通道1调制电路
@@ -87,7 +91,7 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 	#define RDATA		0X12	//通过命令读取数据;支持多种读回。
 //寄存器读取命令
 	//r rrrr=要读、写的寄存器首地址	 //	n nnnn=要读写的寄存器数量
-	#define RREG	0X20	//读取  001r rrrr(首字节) 000n nnnn(2字节)
+	#define RREG	0X20	//读取  001r rrrr(首字节) 000n nnnn(2字节) 
 	#define WREG	0X40	//写入  010r rrrr(首字节) 000n nnnn(2字节)
 	
 //ADS1292R内部寄存器地址定义
@@ -180,53 +184,65 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 
 typedef struct
 {
-		uint8_t Data_Rate; //ADC通道采样率  
+		u8 Data_Rate; //ADC通道采样率  
 }ADS1292_CONFIG1;
+
 typedef struct
 {
-		uint8_t	Pdb_Loff_Comp; 	//导联脱落比较器是否掉电
-		uint8_t	Pdb_Refbuf;			//内部参考缓冲器是否掉电
-		uint8_t	Vref;				//内部参考电压设置
-		uint8_t	Clk_EN;					//振荡器时钟输出设置
-		uint8_t	Int_Test;				//内部测试信号使能位	
+		u8	Pdb_Loff_Comp; 	//导联脱落比较器是否掉电
+		u8	Pdb_Refbuf;			//内部参考缓冲器是否掉电
+		u8	Vref;				//内部参考电压设置
+		u8	Clk_EN;					//振荡器时钟输出设置
+		u8	Int_Test;				//内部测试信号使能位	
 }ADS1292_CONFIG2;
+
 typedef struct
 {
-		uint8_t  PD;			//通道断电？
-		uint8_t	GAIN;		//设置PGA增益
-		uint8_t	MUX;		//设置通道输入方式
+		u8  PD;			//通道断电？
+		u8	GAIN;		//设置PGA增益
+		u8	MUX;		//设置通道输入方式
 }ADS1292_CHSET;
+
+
+
 typedef struct
 {
-		uint8_t	Pdb_Rld;				//该位决定RLD缓冲电源状态
-		uint8_t	Rld_Loff_Sense;	//该位使能RLD导联脱落检测功能
-		uint8_t	Rld2N;					//这个位控制通道2负输入 用于右腿驱动的输出
-		uint8_t	Rld2P;					//该位控制通道2正输入 用于右腿驱动的输出
-		uint8_t	Rld1N;					//这个位控制通道1负输入 用于右腿驱动的输出
-		uint8_t	Rld1P;					//该位控制通道1正输入 用于右腿驱动的输出
+		u8	Pdb_Rld;				//该位决定RLD缓冲电源状态
+		u8	Rld_Loff_Sense;	//该位使能RLD导联脱落检测功能
+		u8	Rld2N;					//这个位控制通道2负输入 用于右腿驱动的输出
+		u8	Rld2P;					//该位控制通道2正输入 用于右腿驱动的输出
+		u8	Rld1N;					//这个位控制通道1负输入 用于右腿驱动的输出
+		u8	Rld1P;					//该位控制通道1正输入 用于右腿驱动的输出
 }ADS1292_RLD_SENS;
+
 typedef struct
 {
-		uint8_t	Flip2;//这个位用于控制导联脱落检测通道2的电流的方向
-		uint8_t	Flip1;//这个位控制用于导联脱落检测通道1的电流的方向
-		uint8_t	Loff2N;//该位控制通道2负输入端的导联脱落检测
-		uint8_t	Loff2P;//该位控制通道2正输入端的导联脱落检测
-		uint8_t	Loff1N;//该位控制通道1负输入端的导联脱落检测
-		uint8_t	Loff1P;//该位控制通道1正输入端的导联脱落检测
+		u8	Flip2;//这个位用于控制导联脱落检测通道2的电流的方向
+		u8	Flip1;//这个位控制用于导联脱落检测通道1的电流的方向
+		u8	Loff2N;//该位控制通道2负输入端的导联脱落检测
+		u8	Loff2P;//该位控制通道2正输入端的导联脱落检测
+		u8	Loff1N;//该位控制通道1负输入端的导联脱落检测
+		u8	Loff1P;//该位控制通道1正输入端的导联脱落检测
 }ADS1292_LOFF_SENS;
+
+
+
 typedef struct
 {	
-		uint8_t	RESP_DemodEN;		//通道偏移校准
-		uint8_t	RESP_modEN;	//RLDREF信号源
-		uint8_t	RESP_ph;	
-		uint8_t	RESP_Ctrl;	
+		u8	RESP_DemodEN;		//通道偏移校准
+		u8	RESP_modEN;	//RLDREF信号源
+		u8	RESP_ph;	
+		u8	RESP_Ctrl;	
 }ADS1292_RESP1;
+
 typedef struct
 {	
-		uint8_t	Calib;		//通道偏移校准
-		uint8_t	freq;			//频率 32k 64k
-		uint8_t	Rldref_Int;	//RLDREF信号源
+		u8	Calib;		//通道偏移校准
+		u8	freq;			//频率 32k 64k
+		u8	Rldref_Int;	//RLDREF信号源
 }ADS1292_RESP2;
+
+
 
 
 

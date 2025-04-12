@@ -1,9 +1,9 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    rtc.h
+  * @file    crc.h
   * @brief   This file contains all the function prototypes for
-  *          the rtc.c file
+  *          the crc.c file
   ******************************************************************************
   * @attention
   *
@@ -18,8 +18,8 @@
   */
 /* USER CODE END Header */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __RTC_H__
-#define __RTC_H__
+#ifndef __CRC_H__
+#define __CRC_H__
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,29 +32,21 @@ extern "C" {
 
 /* USER CODE END Includes */
 
-extern RTC_HandleTypeDef hrtc;
+extern CRC_HandleTypeDef hcrc;
 
 /* USER CODE BEGIN Private defines */
-void My_RTC_Init(void);
-void RTC_RESET(void);
 
-extern void Date_write_BKP(RTC_HandleTypeDef *  hrtc,RTC_DateTypeDef * Date);
-extern void Date_read_BKP(RTC_HandleTypeDef *  hrtc,RTC_DateTypeDef * Date);
-void HAL_RTCEx_RTCEventCallback  ( RTC_HandleTypeDef *  hrtc );
-
-
-void RTC_TimeAndDate_Show(void);
 /* USER CODE END Private defines */
 
-void MX_RTC_Init(void);
-void RTC_SetSecond_IT_ON(void);
+void MX_CRC_Init(void);
+
 /* USER CODE BEGIN Prototypes */
-extern uint8_t rccinit_flag;
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __RTC_H__ */
+#endif /* __CRC_H__ */
 

@@ -7,25 +7,25 @@
 /***ADS1292底层驱动***/
 //淘宝买的，没改过
 
-// #define DEBUG_ADS1292	//寄存器printf调试
+#define DEBUG_ADS1292	//寄存器printf调试
 
 
 u8 ADS1292_REG[12];		//ads1292寄存器数组
-ADS1292_CONFIG1 	Ads1292_Config1		={DATA_RATE};																				//CONFIG1
-ADS1292_CONFIG2 	Ads1292_Config2		={PDB_LOFF_COMP,PDB_REFBUF,VREF,CLK_EN,INT_TEST};		//CONFIG2
-ADS1292_CHSET 		Ads1292_Ch1set		={CNNNLE1_POWER,CNNNLE1_GAIN,CNNNLE1_MUX};					//CH1SET
-ADS1292_CHSET 		Ads1292_Ch2set		={CNNNLE2_POWER,CNNNLE2_GAIN,CNNNLE2_MUX};					//CH2SET
-ADS1292_RLD_SENS	Ads1292_Rld_Sens	={PDB_RLD,RLD_LOFF_SENSE,RLD2N,RLD2P,RLD1N,RLD1P};	//RLD_SENS
-ADS1292_LOFF_SENS	Ads1292_Loff_Sens	={FLIP2,FLIP1,LOFF2N,LOFF2P,LOFF1N,LOFF1P};					//LOFF_SENS
-ADS1292_RESP1			Ads1292_Resp1			={RESP_DEMOD_EN1,RESP_MOD_EN,RESP_PH,RESP_CTRL};		//RSP1
-ADS1292_RESP2			Ads1292_Resp2			={CALIB,FREQ,RLDREF_INT};														//RSP2
+ADS1292_CONFIG1     Ads1292_Config1     = {DATA_RATE};                                                                              //CONFIG1
+ADS1292_CONFIG2     Ads1292_Config2     = {PDB_LOFF_COMP,PDB_REFBUF,VREF,CLK_EN,INT_TEST};      //CONFIG2
+ADS1292_CHSET       Ads1292_Ch1set      = {CNNNLE1_POWER,CNNNLE1_GAIN,CNNNLE1_MUX};                 //CH1SET
+ADS1292_CHSET       Ads1292_Ch2set      = {CNNNLE2_POWER,CNNNLE2_GAIN,CNNNLE2_MUX};                 //CH2SET
+ADS1292_RLD_SENS    Ads1292_Rld_Sens    = {PDB_RLD,RLD_LOFF_SENSE,RLD2N,RLD2P,RLD1N,RLD1P}; //RLD_SENS
+ADS1292_LOFF_SENS   Ads1292_Loff_Sens   = {FLIP2,FLIP1,LOFF2N,LOFF2P,LOFF1N,LOFF1P};                //LOFF_SENS
+ADS1292_RESP1           Ads1292_Resp1           = {RESP_DEMOD_EN1,RESP_MOD_EN,RESP_PH,RESP_CTRL};       //RSP1
+ADS1292_RESP2           Ads1292_Resp2           = {CALIB,FREQ,RLDREF_INT};                                                      //RSP2
 
-	
+
 
 //ADS1292的IO口初始化	
 void ADS1292_Init(void) 
 {		
-		GPIO_InitTypeDef 	GPIO_InitStructure;
+		// GPIO_InitTypeDef 	GPIO_InitStructure;
 	
 
 		// ADS1292R 使用SPI3 
@@ -38,24 +38,24 @@ void ADS1292_Init(void)
 			
 		//DRDY	//待机时高电平，采集时低电平有效
 
-// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
-// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;//上拉输入
-// GPIO_Init(GPIOA, &GPIO_InitStructure);		
-// //CS
-// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
-// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
-// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;//推挽输出
-// GPIO_Init(GPIOB, &GPIO_InitStructure);	
-		
-//		//RESRT
-//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-//		GPIO_Init(GPIOA, &GPIO_InitStructure);	
-//		//START
-//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
-//		GPIO_Init(GPIOA, &GPIO_InitStructure);	
-//		//CLKSEL
-//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-//		GPIO_Init(GPIOA, &GPIO_InitStructure);		
+		// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8;
+		// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;//上拉输入
+		// GPIO_Init(GPIOA, &GPIO_InitStructure);		
+		// //CS
+		// GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12;
+		// GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+		// GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;//推挽输出
+		// GPIO_Init(GPIOB, &GPIO_InitStructure);	
+				
+		//		//RESRT
+		//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+		//		GPIO_Init(GPIOA, &GPIO_InitStructure);	
+		//		//START
+		//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+		//		GPIO_Init(GPIOA, &GPIO_InitStructure);	
+		//		//CLKSEL
+		//		GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
+		//		GPIO_Init(GPIOA, &GPIO_InitStructure);		
 
 
 	// 	//DRDY中断初始化
@@ -75,9 +75,9 @@ void ADS1292_Init(void)
   	// NVIC_Init(&NVIC_InitStructure); 
 	// 	EXTI->IMR &= ~(EXTI_Line8);//屏蔽外部中断	
 
-
-
-		ADS_CS_HIGH;		
+		ADS_CS_HIGH;
+		HAL_NVIC_SetPriority(ADS1292_DRDY_IRQ, 0, 0);
+		HAL_NVIC_EnableIRQ(ADS1292_DRDY_IRQ);
 		ADS1292_PowerOnInit();//上电复位，进入待机模式	
 }
 
@@ -85,16 +85,7 @@ volatile u8 ads1292_recive_flag=0;	//数据读取完成标志
 volatile u8 ads1292_Cache[9];	//数据缓冲区
 
 
-void ADS1292_DRDY_IRQHandler(void)
-{
 
-		if(__HAL_GPIO_EXTI_GET_IT(ADS1292_DRDY_Pin) != RESET && ADS_DRDY_STATE==0)//数据接收中断				
-		{
-				__HAL_GPIO_EXTI_CLEAR_IT(ADS1292_DRDY_Pin); 	
-				ADS1292_Read_Data((u8*)ads1292_Cache);//数据存到9字节缓冲区
-				ads1292_recive_flag=1;
-		}	
-}
 
 
 
@@ -117,6 +108,11 @@ u8 ADS1292_Read_Data(u8 *data)//72M时钟下函数耗时大约10us  8M时钟下 
 		//delay_us(10);
 		ADS_CS_HIGH;		
 		return 0;
+}
+
+void ADS1292_Recv_Start(void)
+{
+    HAL_NVIC_EnableIRQ(ADS1292_DRDY_IRQ);//开DRDY中断  下降沿触发
 }
 
 
@@ -299,7 +295,11 @@ void ADS1292_PowerOnInit(void)
 //		delay_ms(1000);
 //		ADS_RESET=1;//芯片上电，可以使用	
 //		delay_ms(100);	//等待稳定
-	
+
+		ADS_RESET_LOW;//复位
+		delay_ms(1000);
+		ADS_RESET_HIGH;//芯片上电，可以使用
+		delay_ms(100);	//等待稳定
 		ADS1292_Send_CMD(SDATAC);//发送停止连续读取数据命令
 		delay_ms(100);	
 		ADS1292_Send_CMD(RESET);//复位
@@ -322,10 +322,14 @@ void ADS1292_PowerOnInit(void)
 u8 ADS1292_Single_Test(void) //注意1292R开了呼吸解调，会对通道一的内部测试信号波形造成影响，这里只参考通道2即可，1292不受影响
 {
 		u8 res=0;
+		Ads1292_Config1.Data_Rate=DATA_RATE_500SPS;		
 		Ads1292_Config2.Int_Test = INT_TEST_ON;//打开内部测试信号
+		Ads1292_Config2.Vref=VREF_242V;		
 		Ads1292_Ch1set.MUX=MUX_Test_signal;//测试信号输入	
 		Ads1292_Ch2set.MUX=MUX_Test_signal;//测试信号输入
-		
+
+
+
 		if(ADS1292_WRITE_REGBUFF())//写入寄存器
 				res=1;
 		delay_ms(10);
@@ -349,10 +353,11 @@ u8 ADS1292_Noise_Test(void)
 u8 ADS1292_Single_Read(void)
 {
 		u8 res=0;
+		// Ads1292_Config1.Data_Rate=DATA_RATE_250SPS;	
 		Ads1292_Config2.Int_Test = INT_TEST_OFF;//关内部测试信号
 		Ads1292_Ch1set.MUX = MUX_Normal_input;//普通电极输入
 		Ads1292_Ch2set.MUX = MUX_Normal_input;//普通电极输入
-	
+
 		if(ADS1292_WRITE_REGBUFF())//写入寄存器
 				res=1;
 		delay_ms(10);		

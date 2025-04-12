@@ -164,7 +164,6 @@ void My_RTC_Init(void)
   {
     Error_Handler();
   }
-  __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC);
   __HAL_RCC_PWR_CLK_ENABLE();
   __HAL_RCC_BKP_CLK_ENABLE(); 
   HAL_PWR_EnableBkUpAccess();  
@@ -212,7 +211,9 @@ void My_RTC_Init(void)
   // HAL_RTCEx_SetSecond_IT(&hrtc);
 }
 
-
+void RTC_SetSecond_IT_ON(void){
+  __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC);
+}
 
 void RTC_RESET(void){
   RTC_DateTypeDef DateToUpdate ={0};
@@ -247,7 +248,7 @@ void RTC_TimeAndDate_Show(void)
   HAL_RTC_GetTime(&hrtc, &RTC_TimeStructure, RTC_FORMAT_BIN);
   HAL_RTC_GetDate(&hrtc, &RTC_DateStructure, RTC_FORMAT_BIN);
 
-  // 每秒打印�????????????�????????????
+  // 每秒打印�?????????????�?????????????
   if (Rtctmp != RTC_TimeStructure.Seconds)
   {
 
@@ -289,12 +290,12 @@ RTC_DateTypeDef RTC_Date_Get(void)
 
 void HAL_RTCEx_RTCEventCallback ( RTC_HandleTypeDef *  hrtc ) 
 {
-  //秒中断更新时�???????
+  //秒中断更新时�????????
   RTC_DateTypeDef sDate,gDate;
   printf("update time\r\n");  
 	Date_read_BKP(hrtc,&gDate);
 	HAL_RTC_GetDate(hrtc,&sDate,RTC_FORMAT_BCD);
-	//如果日期有变化就保存当前日期到备份域BKP为下次掉电上电后计算日期提供初始化数�???????
+	//如果日期有变化就保存当前日期到备份域BKP为下次掉电上电后计算日期提供初始化数�????????
 	if(gDate.Date!=sDate.Date)
 	{
   printf("update date\r\n");
