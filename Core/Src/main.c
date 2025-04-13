@@ -31,6 +31,7 @@
 #include "KEY.h"
 #include "rtc.h"
 #include "ADS1292R.h"
+#include "sd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -112,20 +113,29 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   My_RTC_Init();
-  ADS1292_Init(); //初始化ads1292
-  // RTC_SetSecond_IT_ON();
+  // ADS1292_Init(); //初始化ads1292
+  RTC_SetSecond_IT_ON();
   // Get_SDCard_Capacity();
+  // WritetoSD(SD_FileName,WriteBuffer,sizeof(WriteBuffer));
 
   HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
   HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_OFF);
   HAL_GPIO_WritePin(RGB_GROP,RGB_B,RGB_OFF);
-  while(Set_ADS1292_Collect(0))//0 正常采集  //1 1mV1Hz内部侧试信号 //2 内部短接噪声测试
-  {
-      printf("1292寄存器设置失败\r\n");
-      delay_ms(1000);
-  }
+  // while(Set_ADS1292_Collect(0))//0 正常采集  //1 1mV1Hz内部侧试信号 //2 内部短接噪声测试
+  // {
+  //     printf("1292寄存器设置失败\r\n");
+  //     delay_ms(1000);
+  // }
 
-  ADS1292_Recv_Start();
+  // ADS1292_Recv_Start();
+
+
+
+
+
+
+
+
 
   /* USER CODE END 2 */
 
@@ -133,25 +143,25 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // delay_ms(100);
-    // RTC_TimeAndDate_Show();
-    // if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
-    // {
-    //   delay_ms(100);
-    //   if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON){
-    //     printf("reset RTC \r\n");
-    //     RTC_RESET();
-    //     delay_ms(500);
-    //   }
-    // }
-    // if (rccinit_flag)
-    // {
-    //   HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
-    // }
-    // else{
-    //         HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
+    delay_ms(100);
+    RTC_TimeAndDate_Show();
+    if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
+    {
+      delay_ms(100);
+      if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON){
+        printf("reset RTC \r\n");
+        RTC_RESET();
+        delay_ms(500);
+      }
+    }
+    if (rccinit_flag)
+    {
+      HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
+    }
+    else{
+            HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
 
-    // }
+    }
     
     // EcgSendByUart();
     

@@ -71,7 +71,7 @@ uint8_t SD_init(void)
 		spi_readwrite(DFF);
 	}
 	
-	//SD卡进�?IDLE状�?
+	//SD卡进入IDLE状态?
 	do{
 		r1 = SD_sendcmd(CMD0 ,0, 0x95);	
 		printf("r1= %x\n",r1);
@@ -458,11 +458,11 @@ void Get_SDCard_Capacity(void)
 	res = SD_init();		//SD卡初始化
 	if(res == 1)
 	{
-		printf("SD卡初始化失败! \r\n");		
+		printf("SD init faild \r\n");		
 	}
 	else
 	{
-		printf("SD卡初始化成功�? \r\n");		
+		printf("SD init success \r\n");		
 	}
 	
 	/* 挂载 */
@@ -484,7 +484,8 @@ void Get_SDCard_Capacity(void)
 	else 
 	{
 		printf("Get SDCard Capacity Failed (%d)\r\n", result);
-	}		
+	}
+	f_mount(NULL,"0:",1);		 //取消挂载	
 } 
 
 
@@ -499,11 +500,11 @@ void WritetoSD(char filename[], BYTE write_buff[], uint8_t bufSize)
 	
 	if(res == 1)
 	{
-		printf("SD卡初始化失败! \r\n");		
+		printf("SD init faild \r\n");		
 	}
 	else
 	{
-		printf("SD卡初始化成功�? \r\n");		
+		printf("SD init success \r\n");		
 	}
 	
 	res=f_mount(&fs,"0:",1);		//挂载
@@ -512,55 +513,55 @@ void WritetoSD(char filename[], BYTE write_buff[], uint8_t bufSize)
 	if(res == FR_NO_FILESYSTEM)		//没有文件系统，格式化
 	{
 //		test_sd =1;				//用于测试格式�?
-		printf("没有文件系统! \r\n");		
+		printf("No file system \r\n");		
 		res = f_mkfs("", 0, 0);		//格式化sd�?
 		if(res == FR_OK)
 		{
-			printf("格式化成�?! \r\n");		
+			printf("formatting SD Card \r\n");		
 			res = f_mount(NULL,"0:",1); 		//格式化后先取消挂�?
 			res = f_mount(&fs,"0:",1);			//重新挂载	
 			if(res == FR_OK)
 			{
-				printf("SD卡已经成功挂载，�?以进进�?�文件写入测�?!\r\n");
+				printf("load SD Card successfully ,write file to test SD Card \r\n");
 			}	
 		}
 		else
 		{
-			printf("格式化失�?! \r\n");		
+			printf("format SD Card failed\r\n");		
 		}
 	}
 	else if(res == FR_OK)
 	{
-		printf("挂载成功! \r\n");		
+		printf("load SD Card successfully! \r\n");		
 	}
 	else
 	{
-		printf("挂载失败! \r\n");
+		printf("load SD Card failed! \r\n");
 	}	
 
 	res = f_open(&file,filename,FA_OPEN_ALWAYS |FA_WRITE);
 	if((res & FR_DENIED) == FR_DENIED)
 	{
-		printf("卡存储已满，写入失败!\r\n");		
+		printf("SD Card is full ,write failed!\r\n");		
 	}
 	
 	f_lseek(&file, f_size(&file));//�?保写词写入不会�?�盖之前的数�?
 	if(res == FR_OK)
 	{
-		printf("打开成功/创建文件成功�? \r\n");		
+		printf("Open/Create file successfully \r\n");		
 		res = f_write(&file,write_buff,bufSize,&Bw);		//写数�?到SD�?
 		if(res == FR_OK)
 		{
-			printf("文件写入成功�? \r\n");			
+			printf("file write successfully \r\n");			
 		}
 		else
 		{
-			printf("文件写入失败�? \r\n");
+			printf("file write filed \r\n");
 		}		
 	}
 	else
 	{
-		printf("打开文件失败!\r\n");
+		printf("filed to open folder!\r\n");
 	}	
 	
 	f_close(&file);						//关闭文件		

@@ -22,6 +22,10 @@
             "defines": [
                 "USE_HAL_DRIVER",
                 "STM32F103xE",
+                "ARM_MATH_CM3",
+                "ARM_MATH_MATRIX_CHECK",
+                "ARM_MATH_ROUNDING",
+                "ARM_MATH_LOOPUNROLL",
                 "__CC_ARM",
                 "__arm__",
                 "__align(x)=",
