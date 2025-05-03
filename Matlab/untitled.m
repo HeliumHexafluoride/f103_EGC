@@ -1,7 +1,7 @@
 close all;
 
 % 绝对路径的 CSV 文件
-filename = 'E:\my_project_new\ECGmeasuring\f103_EGC\CurveData14.csv'; % 替换为你的绝对路径
+filename = 'E:\my_project_new\ECGmeasuring\f103_EGC\CurveData13.csv'; % 替换为你的绝对路径
 
 % 读取 CSV 文件
 data = readtable(filename);
@@ -43,9 +43,9 @@ f = Fs*(0:(N/2))/N; % 频率轴
 
 % 绘制频域图
 subplot(2,1,2);
-plot(f, P1);
+plot(f, 20*log10(P1));
 xlabel('频率 (Hz)');
-ylabel('幅度');
+ylabel('幅度 (dB)');
 title('ECG 信号频域图 (FFT)');
 grid on;
 xlim([0 Fs/2]); % 限制频率范围到 Nyquist 频率
@@ -85,9 +85,9 @@ grid on;
 
 % 绘制频域图
 subplot(2,1,2);
-plot(f, P1);
+plot(f, 20*log10(P1));
 xlabel('频率 (Hz)');
-ylabel('幅度');
+ylabel('幅度 (dB)');
 title('ECG 信号频域图 (FFT)');
 grid on;
 xlim([0 Fs/2]); % 限制频率范围到 Nyquist 频率
