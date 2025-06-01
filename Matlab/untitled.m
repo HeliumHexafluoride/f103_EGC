@@ -1,14 +1,15 @@
 close all;
 
 % 绝对路径的 CSV 文件
-filename = 'E:\my_project_new\ECGmeasuring\f103_EGC\CurveData13.csv'; % 替换为你的绝对路径
-
+% filename = 'E:\my_project_new\ECGmeasuring\f103_EGC\CurveData10.csv'; % 替换为你的绝对路径
+filename = 'E:\my_project_new\ECGmeasuring\f103_EGC\test2.csv'; % 替换为你的绝对路径
 % 读取 CSV 文件
 data = readtable(filename);
 
 % 提取 ECG 数据（假设 ECG 数据在第二列）
 ecg_signal = data{:, 3}; % 根据实际列位置修改
 Fs = 250; % 采样率
+% Fs = 500; % 采样率
 t = (0:length(ecg_signal)-1)/Fs; % 时间轴
 
 
@@ -51,7 +52,9 @@ grid on;
 xlim([0 Fs/2]); % 限制频率范围到 Nyquist 频率
 
 
-ecg_signal=filter(Hd,ecg_signal);
+% ecg_signal=filter(Hd,ecg_signal);
+% ecg_signal=filter(Hd2,ecg_signal);
+ecg_signal=filter(Hd3,ecg_signal);
 
 
 

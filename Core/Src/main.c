@@ -24,7 +24,7 @@
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
-
+#include "LCD.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 // #include "sd.h"
@@ -110,11 +110,12 @@ int main(void)
   MX_DAC_Init();
   MX_SPI3_Init();
   MX_FATFS_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
 
-  My_RTC_Init();
+  // My_RTC_Init();
   // ADS1292_Init(); //≥ı ºªØads1292
-  RTC_SetSecond_IT_ON();
+  // RTC_SetSecond_IT_ON();
   // Get_SDCard_Capacity();
   // WritetoSD(SD_FileName,WriteBuffer,sizeof(WriteBuffer));
 
@@ -132,6 +133,11 @@ int main(void)
 
 
 
+	const unsigned char  *point = &picture_tab[0];
+	TFT_BL_1;
+	TFT_Init();
+
+	
 
 
 
@@ -143,17 +149,17 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    delay_ms(100);
-    RTC_TimeAndDate_Show();
-    if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
-    {
-      delay_ms(100);
-      if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON){
-        printf("reset RTC \r\n");
-        RTC_RESET();
-        delay_ms(500);
-      }
-    }
+    // delay_ms(100);
+    // RTC_TimeAndDate_Show();
+    // if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
+    // {
+    //   delay_ms(100);
+    //   if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON){
+    //     printf("reset RTC \r\n");
+    //     RTC_RESET();
+    //     delay_ms(500);
+    //   }
+    // }
     if (rccinit_flag)
     {
       HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
@@ -165,6 +171,28 @@ int main(void)
     
     // EcgSendByUart();
     
+// TFT-TEST
+    TFT_Clear(RED);
+    delay_ms(2000);
+    TFT_Clear(GREEN);
+    delay_ms(2000);
+    TFT_Clear(BLUE);
+    delay_ms(3000);
+    TFT_Clear(BLACK);
+    Picture_Display(point);
+    delay_ms(3000);
+    display_char16_16(20,160,BLUE,0);
+    display_char16_16(36,160,GREEN,1);
+    display_char16_16(60,160,RED,2);
+    display_char16_16(76,160,BLUE,3);
+    display_char16_16(92,160,GREEN,4);
+    display_char16_16(118,160,BLUE,5);
+    display_char16_16(134,160,RED,6);
+    delay_ms(10000);
+
+// TFT-TEST
+
+
     
     /* USER CODE END WHILE */
 

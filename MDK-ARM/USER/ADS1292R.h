@@ -51,7 +51,7 @@ extern  volatile uint8_t ads1292_recive_flag;	//数据读取完成标志
 		#define	CNNNLE2_MUX				MUX_Normal_input		
 		//6		RLD_SENS	
 		#define	PDB_RLD						PDB_RLD_ON					//RLD缓冲电源		
-		#define	RLD_LOFF_SENSE		RLD_LOFF_SENSE_ON	//RLD导联脱落功能（测试的时候发现右腿导联脱落检测和右腿驱动输出好像不能同时工作）
+		#define	RLD_LOFF_SENSE		RLD_LOFF_SENSE_OFF	//RLD导联脱落功能（测试的时候发现右腿导联脱落检测和右腿驱动输出好像不能同时工作）
 		#define	RLD2N							RLD_CANNLE_ON				//通道的右腿驱动输出
 		#define	RLD2P							RLD_CANNLE_ON
 		#define	RLD1N							RLD_CANNLE_OFF			//呼吸通道不需要右腿驱动

@@ -179,6 +179,27 @@ void ADS1292_SET_REGBUFF(void)
 	ADS1292_REG[GPIO] =	0x0C;			//GPIO设为输入		[7:4]必须为0	 [3:2]11 GPIO为输入 [1:0] 设置输入时，指示引脚电平，设置输出时控制引脚电平
 }
 
+
+//设置寄存器数组
+void ADS1292_SET_REGBUFF_TSET(void){
+	ADS1292_REG[ID]=ADS1292_DEVICE ;
+	ADS1292_REG[CONFIG1] =	0x02;		//0000 0aaa	[7] 0连续转换模式  [6:3] 必须为0 
+	ADS1292_REG[CONFIG2] =	0xE0;		//1abc d0e1	[7] 必须为1  [2] 必须为0  [0] 设置测试信号为1HZ、±1mV方波 
+	ADS1292_REG[LOFF] =	0xF0;//[7:5]	设置导联脱落比较器阈值 [4]	必须为1 		[3:2] 导联脱落电流幅值		[1]	必须为0	[0]	导联脱落检测方式 0 DC 1 AC 
+	ADS1292_REG[CH1SET] =	0x00;	 //abbb cccc
+	ADS1292_REG[CH2SET] =	0x00;	//abbb cccc
+	ADS1292_REG[RLD_SENS] = 0x30; //11ab cdef	[7:6] 11 PGA斩波频率	fMOD/4 
+	ADS1292_REG[LOFF_SENS] = 0x3F;  //00ab cdef	[7:6] 必须为0
+	ADS1292_REG[LOFF_STAT] =	0x00;		//[6]0 设置fCLK和fMOD之间的模分频比 fCLK=fMOD/4  [4:0]只读，导联脱落和电极连接状态
+	ADS1292_REG[RESP1] = 0xDE;//abcc cc1d
+	ADS1292_REG[RESP2] = 0x07; //a000 0bc1	[6:3]必须为0 [0]必须为1
+	ADS1292_REG[GPIO] =	0x0C;			//GPIO设为输入		[7:4]必须为0	 [3:2]11 GPIO为输入 [1:0] 设置输入时，指示引脚电平，设置输出时控制引脚电平
+
+
+}
+
+
+
 //通过SPI3与ADS1292通信
 u8 ADS1292_SPI(u8 Txdata)
 {	
@@ -245,6 +266,7 @@ u8 ADS1292_WRITE_REGBUFF(void)
 		u8 i,res=0;
 		u8 REG_Cache[12];	//存储寄存器数据
 		ADS1292_SET_REGBUFF();//设置寄存器数组
+		// ADS1292_SET_REGBUFF_TSET();
 		ADS1292_WR_REGS(WREG|CONFIG1,11,ADS1292_REG+1);//数组变量写入寄存器
 		delay_ms(10);		
 		ADS1292_WR_REGS(RREG|ID,12,REG_Cache);//读寄存器
@@ -357,10 +379,11 @@ u8 ADS1292_Single_Read(void)
 		Ads1292_Config2.Int_Test = INT_TEST_OFF;//关内部测试信号
 		Ads1292_Ch1set.MUX = MUX_Normal_input;//普通电极输入
 		Ads1292_Ch2set.MUX = MUX_Normal_input;//普通电极输入
-
+		Ads1292_Ch1set.GAIN=GAIN_6;
+		Ads1292_Ch2set.GAIN=GAIN_4;
 		if(ADS1292_WRITE_REGBUFF())//写入寄存器
-				res=1;
-		delay_ms(10);		
+			res=1;
+		delay_ms(10);
 		return res;		
 }
 
