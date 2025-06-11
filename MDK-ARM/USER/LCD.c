@@ -1837,20 +1837,23 @@ unsigned char  picture_tab[PIC_NUM]={
 /**************************SPI模块发送函数************************************************
 
  *************************************************************************/
-u8 SPI_SendByte(u8 Txdata)				//向液晶屏写一个8位数据
+void SPI_SendByte(u8 Txdata)				//向液晶屏写一个8位数据
 {
-	u8 Rxdata;	
-	HAL_SPI_TransmitReceive(&hspi2,&Txdata,&Rxdata,1,100);
-	return Rxdata;
+  while(HAL_SPI_GetState(&hspi2)!=HAL_SPI_STATE_READY){};
+  // HAL_SPI_Transmit(&hspi2,&Txdata,1,100);
+  HAL_SPI_Transmit_DMA(&hspi2,&Txdata,1);
+	// HAL_SPI_TransmitReceive(&hspi2,&Txdata,&Rxdata,1,100);
+
   
 }
 
 void TFT_SEND_CMD(unsigned char o_command)
   {
-    TFT_CS_0;
-	TFT_DC_0;
     
-    SPI_SendByte(o_command);
+    TFT_CS_0;
+	  TFT_DC_0;
+    u8 temp=o_command;
+    SPI_SendByte(temp);
     TFT_CS_1;
    
     //TFT_DC_1;
@@ -1859,10 +1862,10 @@ void TFT_SEND_CMD(unsigned char o_command)
 //向液晶屏写一个8位数据
 void TFT_SEND_DATA(unsigned char  o_data)
   { 
-	TFT_CS_0;
+	  TFT_CS_0;
     TFT_DC_1;
-    
-    SPI_SendByte(o_data);
+    u8 temp=o_data;
+    SPI_SendByte(temp);
     TFT_CS_1;
     
    }
@@ -1923,7 +1926,7 @@ void TFT_Init(void)
                 TFT_SEND_DATA(0x1A);
                 TFT_SEND_CMD(0x36);                 // 屏幕显示方向设置
 	  //调整显示方向  MY,MX,MV,ML,RGB,MH,X,X       row-order，column-order，row/column exchange，
-	   #if (DIS_DIR == 0)                   //正常竖显
+	      #if (DIS_DIR == 0)                   //正常竖显
             TFT_SEND_DATA(0x00);
         #elif (DIS_DIR == 1)                   //旋转90度显示
             TFT_SEND_DATA(0xA0);

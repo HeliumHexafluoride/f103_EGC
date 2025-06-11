@@ -375,7 +375,7 @@ u8 ADS1292_Noise_Test(void)
 u8 ADS1292_Single_Read(void)
 {
 		u8 res=0;
-		// Ads1292_Config1.Data_Rate=DATA_RATE_250SPS;	
+		Ads1292_Config1.Data_Rate=DATA_RATE_250SPS;	
 		Ads1292_Config2.Int_Test = INT_TEST_OFF;//关内部测试信号
 		Ads1292_Ch1set.MUX = MUX_Normal_input;//普通电极输入
 		Ads1292_Ch2set.MUX = MUX_Normal_input;//普通电极输入

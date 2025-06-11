@@ -1,11 +1,71 @@
-
-#include "ADS1292R.h"
 #include "EGC_dataprocess.h"
+#include "ADS1292R.h"
+
+const int fir_num=183;
+const float32_t fir_index[183] = {
+  -4.212387648e-05,-0.0002201599855,-0.0005925226142,-0.001129509299,-0.001706237323,
+   -0.00222646771, -0.00275684474,-0.003463353962,-0.004308704287,-0.004808009602,
+  -0.004255162552,-0.002431941917,-0.000174904475,0.0009639979107,-3.27053167e-05,
+  -0.002547201701,-0.004607245792,-0.004575483501,-0.002731078072,-0.001064612647,
+  -0.001303537632,-0.003127729986, -0.00452647265,-0.004024217837, -0.00236329739,
+  -0.001683122711,-0.003018524963,-0.004986105487,-0.005318854935,-0.003594995243,
+  -0.001913623186,  -0.0025094226,-0.004986179527,-0.006569496356,-0.005346692167,
+  -0.002735435963,-0.002022037981, -0.00442076847, -0.00735450536,-0.007330499589,
+  -0.004244216718,-0.001835883828,-0.003349262755,-0.007395018358,-0.009255812503,
+  -0.006518062204,-0.002341944957,-0.002007831819,-0.006447642576, -0.01064597815,
+  -0.009408437647,-0.003916765098,-0.0008504833677, -0.00446188869, -0.01095342729,
+     -0.012505861, -0.00679814443,-0.0004908199189,-0.001660595299,-0.009687766433,
+   -0.01517388318, -0.01099949516,-0.001607327722, 0.001460487023,-0.006485032849,
+   -0.01658454537,  -0.0162706729,-0.004893225618, 0.004128168337,-0.001145802089,
+   -0.01573459432, -0.02210021205, -0.01108576916,  0.00527745625, 0.006460181437,
+   -0.01130260434, -0.02778863907,  -0.0213448219, 0.003326738952,  0.01692327298,
+  -0.0006995148724, -0.03257325664, -0.03924687952,-0.005454234313,  0.03397260606,
+    0.02622609958, -0.03576558828, -0.08787029982, -0.04625125602,   0.1059502065,
+     0.2840699553,   0.3631146848,   0.2840699553,   0.1059502065, -0.04625125602,
+   -0.08787029982, -0.03576558828,  0.02622609958,  0.03397260606,-0.005454234313,
+   -0.03924687952, -0.03257325664,-0.0006995148724,  0.01692327298, 0.003326738952,
+    -0.0213448219, -0.02778863907, -0.01130260434, 0.006460181437,  0.00527745625,
+   -0.01108576916, -0.02210021205, -0.01573459432,-0.001145802089, 0.004128168337,
+  -0.004893225618,  -0.0162706729, -0.01658454537,-0.006485032849, 0.001460487023,
+  -0.001607327722, -0.01099949516, -0.01517388318,-0.009687766433,-0.001660595299,
+  -0.0004908199189, -0.00679814443,   -0.012505861, -0.01095342729, -0.00446188869,
+  -0.0008504833677,-0.003916765098,-0.009408437647, -0.01064597815,-0.006447642576,
+  -0.002007831819,-0.002341944957,-0.006518062204,-0.009255812503,-0.007395018358,
+  -0.003349262755,-0.001835883828,-0.004244216718,-0.007330499589, -0.00735450536,
+   -0.00442076847,-0.002022037981,-0.002735435963,-0.005346692167,-0.006569496356,
+  -0.004986179527,  -0.0025094226,-0.001913623186,-0.003594995243,-0.005318854935,
+  -0.004986105487,-0.003018524963,-0.001683122711, -0.00236329739,-0.004024217837,
+   -0.00452647265,-0.003127729986,-0.001303537632,-0.001064612647,-0.002731078072,
+  -0.004575483501,-0.004607245792,-0.002547201701,-3.27053167e-05,0.0009639979107,
+  -0.000174904475,-0.002431941917,-0.004255162552,-0.004808009602,-0.004308704287,
+  -0.003463353962, -0.00275684474, -0.00222646771,-0.001706237323,-0.001129509299,
+  -0.0005925226142,-0.0002201599855,-4.212387648e-05
+};
+
+
+
+// 分配存储队列数据的缓冲区
+ECG_TYPE ecg_data_save_buffer[ECG_QUEUE_CAPACITY_SAVE];
+// 定义队列管理结构体
+CircularQueue ecg_save_queue;
+
+// 分配存储队列数据的缓冲区
+ECG_TYPE ecg_data_fir_buffer[FIR_BLOCKSIZE];
+// 定义队列管理结构体
+CircularQueue ecg_fir_queue;
+
+
 
 ECG_TYPE ecg_info;
+
 ECG_Graph_Type ecg_graph= {0,0,200,GRAPH};
 
 uint8_t SampleStartFlag=0;
+
+
+uint32_t blockSize = FIR_BLOCKSIZE;
+arm_fir_instance_f32 S;
+float32_t pState[512]={0};
 
 // uint8_t ads1292_Cache[9];    //数据缓冲区
 //读取72位的数据1100+LOFF_STAT[4:0]+GPIO[1:0]+13个0+2CHx24位，共9字节
@@ -18,6 +78,16 @@ int32_t EcgOutBuffer[FIFO_SIZE];
 
 FIFO_TypeDef InFifoDev;
 FIFO_TypeDef OutFifoDev;
+
+bool fir_cq_is_full=0;
+
+void EGC_dataprocess_init(void){
+    cq_init(&ecg_save_queue, ecg_data_save_buffer, ECG_QUEUE_CAPACITY_SAVE);
+    cq_init(&ecg_fir_queue, ecg_data_fir_buffer, FIR_BLOCKSIZE);
+    arm_fir_init_f32(&S,fir_num,(float32_t *)fir_index,pState,blockSize);
+
+}
+
 
 void ECGDataFIFOInit(void)
 {
@@ -138,6 +208,36 @@ void EcgSendByUart(void)
 }
 
 
+void EcgSendByUart_SET_DATA(ECG_TYPE ecg_info_out)
+{
+    u8 i=0,sum=0;
+    data_to_send[0]=0xAA;   //初始化串口初值
+    data_to_send[1]=0xAA;
+    data_to_send[2]=0xF1;
+    data_to_send[3]=8;
+	data_to_send[4]=ecg_info_out.respirat_impedance>>24;      //25-32位
+    data_to_send[5]=ecg_info_out.respirat_impedance>>16;      //17-24
+    data_to_send[6]=ecg_info_out.respirat_impedance>>8;      //9-16
+    data_to_send[7]=ecg_info_out.respirat_impedance;          //1-8
+    data_to_send[8]=ecg_info_out.ecg_data>>24;      //25-32位
+    data_to_send[9]=ecg_info_out.ecg_data>>16;      //17-24
+    data_to_send[10]=ecg_info_out.ecg_data>>8;       //9-16
+    data_to_send[11]=ecg_info_out.ecg_data;          //1-8
+
+    for(i=0; i<12; i++)
+        sum += data_to_send[i];
+    data_to_send[12] = sum; //校验和
+    HAL_UART_Transmit(&huart1,data_to_send,sizeof(data_to_send),100);     
+    // if(data_to_send[12]!=past_value){
+
+    //     past_value=data_to_send[12];
+    // }
+
+    // USART_DMACmd(USART1,USART_DMAReq_Tx,ENABLE); //使能串口 1 的 DMA 发送
+    // MYDMA_Enable(DMA2_Stream7,13); //开始一次 DMA 传输！
+}
+
+
 static void WriteAdsInBuffer(int date)
 {
 	static u8 cnt=0;
@@ -151,7 +251,6 @@ static void WriteAdsInBuffer(int date)
 			
 		}
 	}
-	
 }
 
 //定位读指针
@@ -203,8 +302,110 @@ void ADS1292_DRDY_IRQHandler(void)
             ads1292_recive_flag=1;
             Update_ECG_Data(ads1292_Cache);
             Cheack_lead_stata(ads1292_Cache);
-            if(SampleStartFlag)
-			WriteAdsInBuffer(ecg_info.ecg_data);//数据写入缓存区
-            EcgSendByUart();
+            // if(SampleStartFlag)
+			// WriteAdsInBuffer(ecg_info.ecg_data);//数据写入缓存区
+            cq_enqueue(&ecg_fir_queue,&ecg_info);
+            if(cq_is_full(&ecg_fir_queue))
+            fir_cq_is_full=1;
+        
+            // EcgSendByUart();
 		}	
 }
+
+// 初始化队列
+void cq_init(CircularQueue *q, ECG_TYPE *buffer, size_t size)
+{
+    q->buffer = buffer;
+    q->capacity = size;
+    q->head = 0;
+    q->tail = 0;
+    q->count = 0;
+}
+
+// 判断队列是否已满
+bool cq_is_full(const CircularQueue *q)
+{
+    return q->count == q->capacity;
+}
+
+// 判断队列是否为空
+bool cq_is_empty(const CircularQueue *q)
+{
+    return q->count == 0;
+}
+
+// 获取当前元素数量
+size_t cq_get_count(const CircularQueue *q)
+{
+    return q->count;
+}
+
+// 入队操作（添加单元）
+bool cq_enqueue(CircularQueue *q, const ECG_TYPE *item)
+{
+    // 如果队列已满，则无法添加
+    if (cq_is_full(q))
+    {
+        return false;
+    }
+
+    // 将数据复制到队尾
+    q->buffer[q->tail] = *item;
+
+    // 移动队尾指针，如果到达末尾则回到开头
+    q->tail = (q->tail + 1) % q->capacity;
+
+    // 元素数量加一
+    q->count++;
+
+    return true;
+}
+
+// 出队操作（读取并移除最老的单元）
+bool cq_dequeue(CircularQueue *q, ECG_TYPE *item)
+{
+    // 如果队列为空，则无法读取
+    if (cq_is_empty(q))
+    {
+        return false;
+    }
+
+    // 从队头复制数据
+    *item = q->buffer[q->head];
+
+    // 移动队头指针，如果到达末尾则回到开头
+    q->head = (q->head + 1) % q->capacity;
+
+    // 元素数量减一
+    q->count--;
+
+    return true;
+}
+
+// 读取整个队列（不修改原始队列）
+size_t cq_read_all(const CircularQueue *q, ECG_TYPE *output_buffer, size_t output_buffer_size)
+{
+    // 如果输出缓冲区不够大，无法完成操作
+    if (output_buffer_size < q->count)
+    {
+        return 0; // 返回0表示没有复制任何元素
+    }
+    
+    if (cq_is_empty(q))
+    {
+        return 0; // 队列为空，直接返回
+    }
+
+    size_t current_head = q->head;
+    for (size_t i = 0; i < q->count; i++)
+    {
+        // 从队头开始，依次复制所有元素到输出缓冲区
+        output_buffer[i] = q->buffer[current_head];
+        current_head = (current_head + 1) % q->capacity;
+    }
+
+    // 返回成功复制的元素数量
+    return q->count;
+}
+
+

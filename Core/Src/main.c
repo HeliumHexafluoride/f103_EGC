@@ -20,18 +20,20 @@
 #include "main.h"
 #include "adc.h"
 #include "dac.h"
+#include "dma.h"
 #include "fatfs.h"
 #include "spi.h"
 #include "usart.h"
 #include "gpio.h"
-#include "LCD.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-// #include "sd.h"
+#include "LCD.h"
 #include "KEY.h"
 #include "rtc.h"
 #include "ADS1292R.h"
 #include "sd.h"
+#include "EGC_dataprocess.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,6 +49,8 @@
 #define RGB_R GPIO_PIN_3
 #define RGB_NO GPIO_PIN_RESET
 #define RGB_OFF GPIO_PIN_SET
+
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -74,6 +78,10 @@ uint8_t WriteBuffer[] = "01 write buff to sd \r\n";
 uint8_t write_cnt =0;	//鍐橲D鍗℃?★拷???
 RTC_TimeTypeDef Time = {0};
 RTC_DateTypeDef Date = {0};
+
+float32_t ecg_heart_data_get[FIR_BLOCKSIZE]={0};
+float32_t ecg_heart_data_out[FIR_BLOCKSIZE]={0};
+ECG_TYPE temp_ecg_data[FIR_BLOCKSIZE];
 /* USER CODE END 0 */
 
 /**
@@ -104,40 +112,49 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
   MX_ADC1_Init();
   MX_DAC_Init();
   MX_SPI3_Init();
+  MX_SPI2_Init();  
+  // delay_ms(100);
   MX_FATFS_Init();
-  MX_SPI2_Init();
+
   /* USER CODE BEGIN 2 */
 
+
+
+
   // My_RTC_Init();
-  // ADS1292_Init(); //初始化ads1292
+  ADS1292_Init(); //初始化ads1292
+
+  EGC_dataprocess_init();
   // RTC_SetSecond_IT_ON();
+  delay_ms(100);
   // Get_SDCard_Capacity();
   // WritetoSD(SD_FileName,WriteBuffer,sizeof(WriteBuffer));
 
   HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
   HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_OFF);
   HAL_GPIO_WritePin(RGB_GROP,RGB_B,RGB_OFF);
-  // while(Set_ADS1292_Collect(0))//0 正常采集  //1 1mV1Hz内部侧试信号 //2 内部短接噪声测试
-  // {
-  //     printf("1292寄存器设置失败\r\n");
-  //     delay_ms(1000);
-  // }
+  while(Set_ADS1292_Collect(0))//0 正常采集  //1 1mV1Hz内部侧试信号 //2 内部短接噪声测试
+  {
+      printf("1292寄存器设置失败\r\n");
+      delay_ms(1000);
+  }
 
-  // ADS1292_Recv_Start();
-
-
+  ADS1292_Recv_Start();
 
 
-	const unsigned char  *point = &picture_tab[0];
-	TFT_BL_1;
-	TFT_Init();
 
-	
+
+	// unsigned char  *point = &picture_tab[0];
+	// TFT_BL_1;
+
+  // TFT_Init();
+  // TFT_Init();
 
 
 
@@ -149,6 +166,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+// RTC_test--------------------------------------------------------------
     // delay_ms(100);
     // RTC_TimeAndDate_Show();
     // if (HAL_GPIO_ReadPin(KEY1_GPIO_PORT,KEY1_GPIO_PIN)==KEY_ON)
@@ -160,37 +178,60 @@ int main(void)
     //     delay_ms(500);
     //   }
     // }
-    if (rccinit_flag)
+    // if (rccinit_flag)
+    // {
+    //   HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
+    // }
+    // else{
+    //         HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
+    // }
+// RTC_test--------------------------------------------------------------
+
+// FIR-TEST --------------------------------------------------------------
+
+  if(cq_is_full(&ecg_fir_queue)){
+    for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
     {
-      HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_NO);
+      if(cq_dequeue(&ecg_fir_queue,&temp_ecg_data[i]))
+      ecg_heart_data_get[i]=temp_ecg_data[i].ecg_data;
     }
-    else{
-            HAL_GPIO_WritePin(RGB_GROP,RGB_R,RGB_OFF);
-
+    arm_fir_f32(&S, ecg_heart_data_get,  ecg_heart_data_out,  FIR_BLOCKSIZE);
+    for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
+    {
+      temp_ecg_data[i].ecg_data=(int)ecg_heart_data_out[i];
+      EcgSendByUart_SET_DATA(temp_ecg_data[i]);
     }
-    
-    // EcgSendByUart();
-    
-// TFT-TEST
-    TFT_Clear(RED);
-    delay_ms(2000);
-    TFT_Clear(GREEN);
-    delay_ms(2000);
-    TFT_Clear(BLUE);
-    delay_ms(3000);
-    TFT_Clear(BLACK);
-    Picture_Display(point);
-    delay_ms(3000);
-    display_char16_16(20,160,BLUE,0);
-    display_char16_16(36,160,GREEN,1);
-    display_char16_16(60,160,RED,2);
-    display_char16_16(76,160,BLUE,3);
-    display_char16_16(92,160,GREEN,4);
-    display_char16_16(118,160,BLUE,5);
-    display_char16_16(134,160,RED,6);
-    delay_ms(10000);
 
-// TFT-TEST
+  }
+
+
+
+// FIR-TEST --------------------------------------------------------------
+
+
+// TFT-TEST --------------------------------------------------------------
+    // HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_NO);
+    // TFT_Clear(RED);
+    // HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_OFF);
+    // delay_ms(2000);
+    // HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_NO);
+    // TFT_Clear(GREEN);
+    // HAL_GPIO_WritePin(RGB_GROP,RGB_G,RGB_OFF);
+    // delay_ms(2000);
+    // TFT_Clear(BLUE);
+    // delay_ms(3000);
+    // TFT_Clear(BLACK);
+    // Picture_Display(point);
+    // delay_ms(3000);
+    // display_char16_16(20,160,BLUE,0);
+    // display_char16_16(36,160,GREEN,1);
+    // display_char16_16(60,160,RED,2);
+    // display_char16_16(76,160,BLUE,3);
+    // display_char16_16(92,160,GREEN,4);
+    // display_char16_16(118,160,BLUE,5);
+    // display_char16_16(134,160,RED,6);
+    // delay_ms(10000);
+// TFT-TEST --------------------------------------------------------------
 
 
     
@@ -272,7 +313,9 @@ void delay_us(uint32_t us)
   }
 }
 
-
+void LCD_test(){
+  
+}
 
 
 /* USER CODE END 4 */

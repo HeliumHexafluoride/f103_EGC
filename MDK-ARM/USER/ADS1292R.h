@@ -265,7 +265,7 @@ uint8_t ADS1292_Single_Read(void);//设置正常信号采集模式
 uint8_t Set_ADS1292_Collect(uint8_t mode);//设置数据采集方式
 
 void ADS1292_DRDY_IRQHandler(void); //数据采集中断处理
-
+void ADS1292_Recv_Start(void);
 #endif
 
 

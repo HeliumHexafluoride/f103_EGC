@@ -3,21 +3,18 @@
         {
             "name": "f103_EGC",
             "includePath": [
+                "${workspaceFolder}/**",
+                "E:\\Keil_MDK\\ARM\\ARMCC\\include",
+                "E:\\Keil_MDK\\ARM\\ARMCC\\include\\rw",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Core\\Inc",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Drivers\\STM32F1xx_HAL_Driver\\Inc",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Drivers\\CMSIS\\Device\\ST\\STM32F1xx\\Include",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Drivers\\CMSIS\\Include",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\MDK-ARM\\USER",
+                "USER",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\FATFS\\Target",
                 "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\FATFS\\App",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Middlewares\\Third_Party\\FatFs\\src",
-                "E:\\Keil_MDK\\ARM\\ARMCC\\include",
-                "E:\\Keil_MDK\\ARM\\ARMCC\\include\\rw",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\MDK-ARM",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Core\\Src",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Drivers\\STM32F1xx_HAL_Driver\\Src",
-                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Middlewares\\Third_Party\\FatFs\\src\\option"
+                "e:\\my_project_new\\ECGmeasuring\\f103_EGC\\Middlewares\\Third_Party\\FatFs\\src"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
@@ -26,6 +23,7 @@
                 "ARM_MATH_MATRIX_CHECK",
                 "ARM_MATH_ROUNDING",
                 "ARM_MATH_LOOPUNROLL",
+                "_RTE_",
                 "__CC_ARM",
                 "__arm__",
                 "__align(x)=",
@@ -99,7 +97,9 @@
                 "__yield()=",
                 "__vfp_status(x,y)=0"
             ],
-            "intelliSenseMode": "${default}"
+            "intelliSenseMode": "${default}",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
         }
     ],
     "version": 4

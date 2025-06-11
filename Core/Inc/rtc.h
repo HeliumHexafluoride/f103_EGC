@@ -47,8 +47,9 @@ void RTC_TimeAndDate_Show(void);
 /* USER CODE END Private defines */
 
 void MX_RTC_Init(void);
-void RTC_SetSecond_IT_ON(void);
+
 /* USER CODE BEGIN Prototypes */
+void RTC_SetSecond_IT_ON(void);
 extern uint8_t rccinit_flag;
 /* USER CODE END Prototypes */
 

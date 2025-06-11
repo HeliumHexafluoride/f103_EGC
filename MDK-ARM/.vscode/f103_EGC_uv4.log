@@ -1,8 +1,4 @@
 *** Using Compiler 'V5.06 update 7 (build 960)', folder: 'E:\Keil_MDK\ARM\ARMCC\Bin'
 Build target 'f103_EGC'
-compiling main.c...
-linking...
-Program Size: Code=20976 RO-data=1116 RW-data=29140 ZI-data=25692  
-FromELF: creating hex file...
 "f103_EGC\f103_EGC.axf" - 0 Error(s), 0 Warning(s).
-Build Time Elapsed:  00:00:02
+Build Time Elapsed:  00:00:01

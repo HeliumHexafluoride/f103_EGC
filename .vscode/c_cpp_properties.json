@@ -17,7 +17,8 @@
                 "MDK-ARM\\USER",
                 "FATFS\\Target",
                 "FATFS\\App",
-                "Middlewares\\Third_Party\\FatFs\\src"
+                "Middlewares\\Third_Party\\FatFs\\src",
+                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS-DSP\\1.16.2\\Include"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
