@@ -6,6 +6,7 @@
 
 #define BLOCK_SIZE           250 /* 调用一次arm_fir_f32处理的采样点个数 */
 #define PACK_NUM             2
+#define PACK_NUM_HR          12
 #define FIFO_SIZE (PACK_NUM * BLOCK_SIZE)//缓存区大小
 
 // 定义环形队列容量
@@ -110,9 +111,9 @@ extern arm_fir_instance_f32 S;
 extern bool fir_cq_is_full;
 
 // 分配存储队列数据的缓冲区
-extern ECG_TYPE ecg_data_save_buffer[ECG_QUEUE_CAPACITY_SAVE];
+// extern ECG_TYPE ecg_data_save_buffer[ECG_QUEUE_CAPACITY_SAVE];
 // 定义队列管理结构体
-extern CircularQueue ecg_save_queue;
+// extern CircularQueue ecg_save_queue;
 
 // 分配存储队列数据的缓冲区
 extern ECG_TYPE ecg_data_fir_buffer[FIR_BLOCKSIZE];
@@ -178,6 +179,8 @@ size_t cq_read_all(const CircularQueue *q, ECG_TYPE *output_buffer, size_t outpu
 // 初始化数据处理
 void EGC_dataprocess_init(void);
 void EcgSendByUart_SET_DATA(ECG_TYPE ecg_info_out);
+void compute_integrated_signal(const float32_t* ecg_data, float32_t* integrated_out);
 
-
+uint16_t hr_count(const int *h);
+void EcgSendByUart_SET_Heart_Rate(uint16_t hart_rate);
 #endif

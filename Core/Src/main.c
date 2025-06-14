@@ -49,7 +49,7 @@
 #define RGB_R GPIO_PIN_3
 #define RGB_NO GPIO_PIN_RESET
 #define RGB_OFF GPIO_PIN_SET
-
+#define LCD_SHOW_NUM 4
 
 /* USER CODE END PD */
 
@@ -79,8 +79,18 @@ uint8_t write_cnt =0;	//ÂÜôSDÂç°Ê?°ÔøΩ???
 RTC_TimeTypeDef Time = {0};
 RTC_DateTypeDef Date = {0};
 
+
+uint8_t target_hartrate_show_num=0;
+uint8_t target_hart_show_num=0;
 float32_t ecg_heart_data_get[FIR_BLOCKSIZE]={0};
 float32_t ecg_heart_data_out[FIR_BLOCKSIZE]={0};
+float32_t ecg_heart_rate_data_out[FIR_BLOCKSIZE]={0};
+int ecg_heart_rate_data[FIR_BLOCKSIZE*PACK_NUM_HR]={0};
+
+
+float32_t ecg_heart_data_show_x[FIR_BLOCKSIZE]={0};
+float32_t ecg_heart_data_show_y[FIR_BLOCKSIZE]={0};
+
 ECG_TYPE temp_ecg_data[FIR_BLOCKSIZE];
 /* USER CODE END 0 */
 
@@ -190,18 +200,30 @@ int main(void)
 // FIR-TEST --------------------------------------------------------------
 
   if(cq_is_full(&ecg_fir_queue)){
+    uint16_t HR=0;
     for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
     {
       if(cq_dequeue(&ecg_fir_queue,&temp_ecg_data[i]))
       ecg_heart_data_get[i]=temp_ecg_data[i].ecg_data;
     }
     arm_fir_f32(&S, ecg_heart_data_get,  ecg_heart_data_out,  FIR_BLOCKSIZE);
+    compute_integrated_signal(ecg_heart_data_out,ecg_heart_rate_data_out);
     for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
     {
       temp_ecg_data[i].ecg_data=(int)ecg_heart_data_out[i];
+      ecg_heart_data_show_x[i]=i+target_hart_show_num;
+      ecg_heart_data_show_y[i]=ecg_heart_data_out[i];
+      temp_ecg_data[i].respirat_impedance=(int)ecg_heart_rate_data_out[i]/1000000;
+      ecg_heart_rate_data[i+target_hartrate_show_num*250]=temp_ecg_data[i].respirat_impedance;
+      HR=hr_count(ecg_heart_rate_data);
+
       EcgSendByUart_SET_DATA(temp_ecg_data[i]);
     }
-
+    target_hartrate_show_num++;
+    target_hart_show_num++;
+    target_hartrate_show_num%=PACK_NUM_HR;
+    target_hart_show_num%=LCD_SHOW_NUM;
+    EcgSendByUart_SET_Heart_Rate(HR);
   }
 
 
@@ -241,6 +263,8 @@ int main(void)
   }
   /* USER CODE END 3 */
 }
+
+
 
 /**
   * @brief System Clock Configuration
