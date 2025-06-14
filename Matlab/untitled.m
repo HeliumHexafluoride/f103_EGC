@@ -52,9 +52,9 @@ grid on;
 xlim([0 Fs/2]); % 限制频率范围到 Nyquist 频率
 
 
-% ecg_signal=filter(Hd,ecg_signal);
+ecg_signal=filter(Hd,ecg_signal);
 % ecg_signal=filter(Hd2,ecg_signal);
-ecg_signal=filter(Hd3,ecg_signal);
+% ecg_signal=filter(Hd3,ecg_signal);
 
 
 

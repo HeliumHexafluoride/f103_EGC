@@ -4,15 +4,15 @@
 #include"main.h"
 #include "arm_math.h"
 
-#define BLOCK_SIZE           25 /* 调用一次arm_fir_f32处理的采样点个数 */
-#define PACK_NUM             10
+#define BLOCK_SIZE           250 /* 调用一次arm_fir_f32处理的采样点个数 */
+#define PACK_NUM             2
 #define FIFO_SIZE (PACK_NUM * BLOCK_SIZE)//缓存区大小
 
 // 定义环形队列容量
 #define ECG_QUEUE_CAPACITY_SAVE 1000
 
 //块长度，原始数据长度为1000
-#define FIR_BLOCKSIZE 25
+#define FIR_BLOCKSIZE 250
 
 /*****ECG数据信息******/
 typedef struct
@@ -104,7 +104,7 @@ u8 ReadEcgOutBuffer(int32_t *p);
 
 
 extern const int fir_num;
-extern const float32_t fir_index[183];
+extern const float32_t fir_index[156];
 
 extern arm_fir_instance_f32 S;
 extern bool fir_cq_is_full;

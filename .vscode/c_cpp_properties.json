@@ -6,9 +6,13 @@
             "cStandard": "c17",
             "cppStandard": "c++17",
             "includePath": [
-                "${workspaceFolder}/**",
+                "${workspaceFolder}/RTE/_f103_EGC",
                 "E:\\Keil_MDK\\ARM\\ARMCC\\include",
                 "E:\\Keil_MDK\\ARM\\ARMCC\\include\\rw",
+                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS\\5.9.0\\CMSIS\\Core\\Include",
+                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS-DSP\\1.16.2\\Include",
+                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS-DSP\\1.16.2\\PrivateInclude",
+                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS-DSP\\1.16.2\\ComputeLibrary\\Include",
                 "Core\\Inc",
                 "Drivers\\STM32F1xx_HAL_Driver\\Inc",
                 "Drivers\\STM32F1xx_HAL_Driver\\Inc\\Legacy",
@@ -17,8 +21,7 @@
                 "MDK-ARM\\USER",
                 "FATFS\\Target",
                 "FATFS\\App",
-                "Middlewares\\Third_Party\\FatFs\\src",
-                "E:\\Keil_MDK\\Pack\\ARM\\CMSIS-DSP\\1.16.2\\Include"
+                "Middlewares\\Third_Party\\FatFs\\src"
             ],
             "defines": [
                 "USE_HAL_DRIVER",
@@ -100,7 +103,8 @@
                 "__wfi()=",
                 "__yield()=",
                 "__vfp_status(x,y)=0"
-            ]
+            ],
+            "compilerPath": "E:\\Keil_MDK\\ARM\\ARMCC\\bin\\armcc.exe"
         }
     ],
     "version": 4
