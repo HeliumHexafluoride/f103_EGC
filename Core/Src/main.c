@@ -29,6 +29,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "LCD.h"
+#include "UI.h"
 #include "KEY.h"
 #include "rtc.h"
 #include "ADS1292R.h"
@@ -49,7 +50,7 @@
 #define RGB_R GPIO_PIN_3
 #define RGB_NO GPIO_PIN_RESET
 #define RGB_OFF GPIO_PIN_SET
-#define LCD_SHOW_NUM 4
+#define LCD_SHOW_NUM 2
 
 /* USER CODE END PD */
 
@@ -88,8 +89,11 @@ float32_t ecg_heart_rate_data_out[FIR_BLOCKSIZE]={0};
 int ecg_heart_rate_data[FIR_BLOCKSIZE*PACK_NUM_HR]={0};
 
 
-float32_t ecg_heart_data_show_x[FIR_BLOCKSIZE]={0};
-float32_t ecg_heart_data_show_y[FIR_BLOCKSIZE]={0};
+uint16_t ecg_heart_data_show_x_now[FIR_BLOCKSIZE]={0};
+// uint16_t ecg_heart_data_show_x_last[FIR_BLOCKSIZE]={0};
+
+// float32_t ecg_heart_data_show_y_last[FIR_BLOCKSIZE*LCD_SHOW_NUM]={0};
+float32_t ecg_heart_data_show_y_now[FIR_BLOCKSIZE]={0};
 
 ECG_TYPE temp_ecg_data[FIR_BLOCKSIZE];
 /* USER CODE END 0 */
@@ -161,11 +165,11 @@ int main(void)
 
 
 	// unsigned char  *point = &picture_tab[0];
-	// TFT_BL_1;
+	TFT_BL_1;
 
-  // TFT_Init();
-  // TFT_Init();
-
+  TFT_Init();
+  TFT_Init();
+  ECG_Screen_Init(); // 绘制ECG屏幕的静态布局
 
 
 
@@ -211,19 +215,43 @@ int main(void)
     for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
     {
       temp_ecg_data[i].ecg_data=(int)ecg_heart_data_out[i];
-      ecg_heart_data_show_x[i]=i+target_hart_show_num;
-      ecg_heart_data_show_y[i]=ecg_heart_data_out[i];
+      ecg_heart_data_show_x_now[i]=i+target_hart_show_num*250;
+      // ecg_heart_data_show_x_last[i]=(ecg_heart_data_show_x_now[i]+750)/1000;
+      ecg_heart_data_show_y_now[i]=ecg_heart_data_out[i]*2420.0/16777216.0;
+
       temp_ecg_data[i].respirat_impedance=(int)ecg_heart_rate_data_out[i]/1000000;
       ecg_heart_rate_data[i+target_hartrate_show_num*250]=temp_ecg_data[i].respirat_impedance;
       HR=hr_count(ecg_heart_rate_data);
 
       EcgSendByUart_SET_DATA(temp_ecg_data[i]);
     }
+
+    // if(target_hart_show_num==0){
+    // draw_ecg_waveform_static(ecg_heart_data_show_y_last+750,
+    //                         ecg_heart_data_show_x_last,
+    //                         FIR_BLOCKSIZE, // 使用宏定义点数
+    //                         BLACK);     // 使用 LCD.h 中定义的颜色
+    // }
+    // else{
+    // draw_ecg_waveform_static(ecg_heart_data_show_y_last-250,
+    //                         ecg_heart_data_show_x_last,
+    //                         FIR_BLOCKSIZE, // 使用宏定义点数
+    //                         BLACK);     // 使用 LCD.h 中定义的颜色
+    // }
+    // for (u8 i = 0; i < FIR_BLOCKSIZE; i++)
+    // ecg_heart_data_show_y_last[i+target_hart_show_num*250]=ecg_heart_data_show_y_now[i];
+
     target_hartrate_show_num++;
     target_hart_show_num++;
+
     target_hartrate_show_num%=PACK_NUM_HR;
     target_hart_show_num%=LCD_SHOW_NUM;
     EcgSendByUart_SET_Heart_Rate(HR);
+
+    draw_ecg_waveform_static(ecg_heart_data_show_y_now,
+                             ecg_heart_data_show_x_now,
+                             FIR_BLOCKSIZE, // 使用宏定义点数
+                             ECG_WAVEFORM_COLOR);     // 使用 LCD.h 中定义的颜色
   }
 
 

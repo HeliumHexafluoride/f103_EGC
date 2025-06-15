@@ -12,6 +12,10 @@
         "xmemory": "cpp",
         "xutility": "cpp",
         "xstring": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "lcdfont_dma.h": "c",
+        "atomic": "c",
+        "cstdlib": "c",
+        "memory": "c"
     }
 }
