@@ -27,7 +27,7 @@
 // --- Input data range constants ---
 // X-axis input data range (e.g., sample index or time)
 const float INPUT_X_DATA_MIN = 0.0f;
-const float INPUT_X_DATA_MAX = 500.0f; // Matching your original_x_coords max value
+const float INPUT_X_DATA_MAX = 250.0f; // Matching your original_x_coords max value
 
 // Y-axis input data range (using defined ECG value limits)
 const float INPUT_Y_DATA_MIN = MIN_ECG_DATA_VALUE; // -10.0f
@@ -46,8 +46,8 @@ void draw_ecg_waveform_static(const float32_t y_values[],
     if (input_x_range == 0.0f) input_x_range = 1.0f;
     if (input_y_range == 0.0f) input_y_range = 1.0f;
 
-    float last_input_x = 0;
-    float last_input_y = 0;
+    uint16_t last_input_x = 0;
+    uint16_t last_input_y = 0;
     
     for (int i = 0; i < num_points; ++i) {
         float current_input_x = (float)x_values[i];
@@ -77,7 +77,8 @@ void draw_ecg_waveform_static(const float32_t y_values[],
         // If WAVE_START_X + WAVE_WIDTH > TFT_COLUMN_NUMBER or
         // WAVE_START_Y + WAVE_HEIGHT > TFT_LINE_NUMBER, points outside physical screen will be clipped.
         TFT_Fill_Region(last_input_x,WAVE_START_Y,last_input_x+5,WAVE_BOTTOM_Y,BLACK);
-        lcd_set_line(last_input_x,last_input_y,screen_x, screen_y, waveform_color);
+        // lcd_set_line(last_input_x,last_input_y,screen_x, screen_y, waveform_color);
+        TFT_DrawLine(last_input_x,last_input_y,screen_x, screen_y, waveform_color);
         last_input_x=screen_x;
         last_input_y=screen_y;
     }
@@ -167,7 +168,7 @@ void draw_ecg_waveform_static(const float32_t y_values[],
 
 void lcd_set_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t rgb)
 {
-    double a = 0.0,b = 0.0;         // 解析式: y=ax+b
+    float64_t a = 0.0,b = 0.0;         // 解析式: y=ax+b
     uint16_t sx = MIN(x1, x2);           // sx 与 ex 需要成对使用 y与x不能混用
     uint16_t sy = MIN(y1, y2);
     uint16_t ex = MAX(x1, x2);
@@ -178,7 +179,7 @@ void lcd_set_line(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2, uint16_t r
         for(uint16_t i = sy;i < ey;i++)
             TFT_Draw_Point(x1, i, rgb);
     }
-    else if (y1 = y2)
+    else if (y1 == y2)
     {
         //水平线
         for(uint16_t i = sx;i < ex;i++)

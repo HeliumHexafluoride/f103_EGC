@@ -521,7 +521,7 @@ uint16_t hr_count(const int *h)
     }
     else
     mid_avg = mid_avg*60/(count * 250);
-    mid_avg*=1.6;
+    mid_avg*=2;
     return mid_avg;
 }
 

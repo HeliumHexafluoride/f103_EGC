@@ -63,7 +63,7 @@
 #define WAVE_START_X          0
 #define WAVE_START_Y          CHAR_HEIGHT_16PX * 2 // 在标签下方
 #define WAVE_HEIGHT           175
-#define WAVE_BOTTOM_Y         WAVE_START_Y+WAVE_HEIGHT
+#define WAVE_BOTTOM_Y         240
 #define WAVE_WIDTH            TFT_COLUMN_NUMBER
 #define WAVE_BASELINE_Y       (WAVE_START_Y + WAVE_HEIGHT / 2)
 
@@ -72,8 +72,8 @@
 // 我们需要定义静态绘制特有的参数
 #define STATIC_ECG_X_INCREMENT  3   // 每个ECG点在X轴上前进的像素数
 #define STATIC_ECG_Y_SCALE      1   // Y轴缩放因子
-#define MIN_ECG_DATA_VALUE      -2
-#define MAX_ECG_DATA_VALUE      2
+#define MIN_ECG_DATA_VALUE      -1
+#define MAX_ECG_DATA_VALUE      1
 // 心率显示区域
 #define HR_LABEL_X            10
 #define HR_LABEL_Y            10
@@ -113,7 +113,7 @@ void ECG_UpdateHeartRate(uint16_t hr_value);
 void TFT_ShowChar(uint16_t x_start_pos, uint16_t y_start_pos, uint8_t ascii_char, uint8_t font_height, uint8_t mode);
 
 void ECG_Screen_Init(); // 绘制ECG屏幕的静态布局
-
+void Update_HR_Display(uint16_t hr_value);
 extern uint8_t LCD_buffer[BUFFERSIZE];
 
 #endif //__LCD_H__

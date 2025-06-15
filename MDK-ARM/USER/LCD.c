@@ -682,29 +682,29 @@ void ECG_Screen_Init(void) {
                    label_font_size, label_mode, (uint8_t*)"II");
 
 
-    // (可选) 其他信息标签，例如ECG增益、走纸速度等
-    // 可以选择不同的字体大小和位置
-    uint8_t info_font_size = 12; // 例如使用小一点的字体
-    uint8_t info_char_width = info_font_size / 2;
-    uint16_t info_label_y = TFT_LINE_NUMBER - info_font_size - 5; // 屏幕底部 (确保不小于0)
-    if (info_label_y > TFT_LINE_NUMBER) info_label_y = TFT_LINE_NUMBER - info_font_size; // 再次检查
+    // // (可选) 其他信息标签，例如ECG增益、走纸速度等
+    // // 可以选择不同的字体大小和位置
+    // uint8_t info_font_size = 12; // 例如使用小一点的字体
+    // uint8_t info_char_width = info_font_size / 2;
+    // uint16_t info_label_y = TFT_LINE_NUMBER - info_font_size - 5; // 屏幕底部 (确保不小于0)
+    // if (info_label_y > TFT_LINE_NUMBER) info_label_y = TFT_LINE_NUMBER - info_font_size; // 再次检查
 
-    POINT_COLOR = ECG_TEXT_COLOR; // 确保颜色正确
-    if (label_mode == 0) BACK_COLOR = ECG_BACKGROUND_COLOR;
+    // POINT_COLOR = ECG_TEXT_COLOR; // 确保颜色正确
+    // if (label_mode == 0) BACK_COLOR = ECG_BACKGROUND_COLOR;
 
-    TFT_ShowString(10, info_label_y,
-                   4 * info_char_width, info_font_size, // "x1.0"
-                   info_font_size, label_mode, (uint8_t*)"x1.0");
+    // TFT_ShowString(10, info_label_y,
+    //                4 * info_char_width, info_font_size, // "x1.0"
+    //                info_font_size, label_mode, (uint8_t*)"x1.0");
 
-    const char* speed_str = "25mm/s";
-    uint16_t speed_str_len = 0;
-    while(speed_str[speed_str_len] != '\0') speed_str_len++;
-    uint16_t speed_label_x = TFT_COLUMN_NUMBER - 5 - (speed_str_len * info_char_width);
-    if (speed_label_x > TFT_COLUMN_NUMBER) speed_label_x = 10; // 防止计算结果为负导致回绕
+    // const char* speed_str = "25mm/s";
+    // uint16_t speed_str_len = 0;
+    // while(speed_str[speed_str_len] != '\0') speed_str_len++;
+    // uint16_t speed_label_x = TFT_COLUMN_NUMBER - 5 - (speed_str_len * info_char_width);
+    // if (speed_label_x > TFT_COLUMN_NUMBER) speed_label_x = 10; // 防止计算结果为负导致回绕
 
-    TFT_ShowString(speed_label_x, info_label_y,
-                   speed_str_len * info_char_width + info_char_width, info_font_size, // 走纸速度
-                   info_font_size, label_mode, (uint8_t*)speed_str);
+    // TFT_ShowString(speed_label_x, info_label_y,
+    //                speed_str_len * info_char_width + info_char_width, info_font_size, // 走纸速度
+    //                info_font_size, label_mode, (uint8_t*)speed_str);
 
 
     // 3. 初始化波形缓冲区和相关绘图变量 (这部分逻辑保持不变)
@@ -744,6 +744,48 @@ void ECG_UpdateWaveform(int16_t newDataPoint, int16_t minExpectedData, int16_t m
     ecg_waveform_buffer[current_ecg_x_position] = new_y;
     last_ecg_y_value = new_y;
     current_ecg_x_position = (current_ecg_x_position + 1) % WAVE_WIDTH;
+}
+
+void Update_HR_Display(uint16_t hr_value) {
+    char hr_string_buffer[6]; // 用于存放HR字符串的缓冲区 (例如 "120", 最大 "65535" + 空字符)
+    uint8_t font_size = 16;   // 与 ECG_Screen_Init 中标签使用的字体大小匹配
+    uint8_t display_mode = 1; // 透明背景模式 (推荐用于文本，背景已由Fill_Region处理)
+    uint8_t char_w = font_size / 2;
+
+    // 1. 定义心率值显示区域的宽度
+    //    假设心率值最多显示3位数字 (例如 "250")。
+    //    可以根据实际最大心率值调整，例如如果HR可能为1000，则需要4位。
+    uint8_t max_hr_digits = 3; // 假设心率最多3位数
+    uint16_t hr_value_clear_width = max_hr_digits * char_w; // 清除区域的宽度
+                                                        // 可以稍微加一点冗余，例如 (max_hr_digits * char_w) + 2
+
+    // 2. 清除旧的心率值区域
+    //    xsta: HR_VALUE_X
+    //    ysta: HR_LABEL_Y
+    //    xend: HR_VALUE_X + 清除宽度 - 1
+    //    yend: HR_LABEL_Y + 字体高度 - 1
+    uint16_t clear_x_end = HR_VALUE_X + hr_value_clear_width - 1;
+    uint16_t clear_y_end = HR_LABEL_Y + font_size - 1;
+
+    // 调用您的填充函数来用背景色覆盖该区域
+    TFT_Fill_Region(HR_VALUE_X, HR_LABEL_Y, clear_x_end, clear_y_end, ECG_BACKGROUND_COLOR);
+
+    // 3. 将新的心率值转换为字符串
+    snprintf(hr_string_buffer, sizeof(hr_string_buffer), "%u", hr_value);
+
+    // 4. 设置文本颜色
+    POINT_COLOR = ECG_TEXT_COLOR;
+
+    // 5. 显示新的心率字符串
+    //    传递给 TFT_ShowString 的 width 参数是其内部用于判断换行的边界，
+    //    对于单行短文本，可以设置为清除区域的宽度或者实际文本的宽度。
+    //    height 参数也是其内部用于判断是否超出区域的边界。
+    TFT_ShowString(HR_VALUE_X, HR_LABEL_Y,
+                   hr_value_clear_width, // 字符串绘制区域的最大宽度
+                   font_size,            // 字符串绘制区域的高度 (即字体高度)
+                   font_size,            // 字体大小参数
+                   display_mode,         // 透明模式
+                   (uint8_t*)hr_string_buffer);
 }
 
 // 在 main.c 或你的 ecg_display.c 中

@@ -50,7 +50,7 @@
 #define RGB_R GPIO_PIN_3
 #define RGB_NO GPIO_PIN_RESET
 #define RGB_OFF GPIO_PIN_SET
-#define LCD_SHOW_NUM 2
+#define LCD_SHOW_NUM 1
 
 /* USER CODE END PD */
 
@@ -252,6 +252,7 @@ int main(void)
                              ecg_heart_data_show_x_now,
                              FIR_BLOCKSIZE, // 使用宏定义点数
                              ECG_WAVEFORM_COLOR);     // 使用 LCD.h 中定义的颜色
+    Update_HR_Display(HR);
   }
 
 
